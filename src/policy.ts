@@ -8,8 +8,14 @@ export interface Env {
 }
 
 export async function syncPolicy(env: Env): Promise<void> {
-  const { keys } = await env.IP_ALLOWLIST.list({ prefix: 'ip:' });
-  const ips = keys.map((k) => k.name.slice(3)); // strip 'ip:' prefix
+  const allKeys: KVNamespaceListKey<unknown>[] = [];
+  let cursor: string | undefined;
+  do {
+    const result = await env.IP_ALLOWLIST.list({ prefix: 'ip:', cursor });
+    allKeys.push(...result.keys);
+    cursor = result.list_complete ? undefined : result.cursor;
+  } while (cursor !== undefined);
+  const ips = allKeys.map((k) => k.name.slice(3)); // strip 'ip:' prefix
 
   const include =
     ips.length > 0
