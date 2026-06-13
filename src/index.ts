@@ -13,7 +13,11 @@ export default {
       await env.IP_ALLOWLIST.put(`ip:${ip}`, new Date().toISOString(), {
         expirationTtl: 86400,
       });
-      await syncPolicy(env);
+      try {
+        await syncPolicy(env);
+      } catch {
+        return new Response(`Registered ${ip} for 24h (policy sync pending — active within 1h)\n`, { status: 200 });
+      }
       return new Response(`Registered ${ip} for 24h\n`, { status: 200 });
     }
 
