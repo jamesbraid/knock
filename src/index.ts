@@ -20,7 +20,7 @@ export default {
     return new Response('Not found\n', { status: 404 });
   },
 
-  async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
     await syncPolicy(env);
   },
 };
