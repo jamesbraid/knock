@@ -24,7 +24,7 @@ export async function syncPolicy(env: Env): Promise<void> {
           const suffix = ip.includes(':') ? '/128' : '/32';
           return { ip: { ip: `${ip}${suffix}` } };
         })
-      : [{ ip: { ip: '0.0.0.0/32' } }]; // inert placeholder — CF rejects empty include
+      : [{ ip: { ip: '0.0.0.0/32' } }]; // inert placeholder — CF rejects empty include (error 12130 "include field should not be empty"). 0.0.0.0/32 is a single-host route that can never match a real client (0.0.0.0 is an invalid source IP per RFC 1122).
 
   const cf = new Cloudflare({ apiToken: env.CF_API_TOKEN });
   await cf.zeroTrust.access.policies.update(env.BYPASS_POLICY_ID, {
