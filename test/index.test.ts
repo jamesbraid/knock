@@ -28,6 +28,37 @@ describe('POST /register', () => {
   });
 });
 
+describe('DELETE /register', () => {
+  it('returns 200 with unregister confirmation containing the IP', async () => {
+    const res = await SELF.fetch('https://knock.example.com/register', {
+      method: 'DELETE',
+      headers: { 'CF-Connecting-IP': '1.2.3.4' },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('Unregistered 1.2.3.4\n');
+  });
+
+  it('returns 400 when CF-Connecting-IP header is absent', async () => {
+    const res = await SELF.fetch('https://knock.example.com/register', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(400);
+    expect(await res.text()).toBe('Missing CF-Connecting-IP\n');
+  });
+
+  it('returns 200 with pending message when syncPolicy throws', async () => {
+    mockSyncPolicy.mockRejectedValueOnce(new Error('cf api down'));
+    const res = await SELF.fetch('https://knock.example.com/register', {
+      method: 'DELETE',
+      headers: { 'CF-Connecting-IP': '1.2.3.4' },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toContain('Unregistered 1.2.3.4');
+    expect(body).toContain('pending');
+  });
+});
+
 describe('other paths', () => {
   it('returns 404 for GET /', async () => {
     const res = await SELF.fetch('https://knock.example.com/');
@@ -36,6 +67,11 @@ describe('other paths', () => {
 
   it('returns 404 for an unknown POST path', async () => {
     const res = await SELF.fetch('https://knock.example.com/unknown', { method: 'POST' });
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for DELETE on an unknown path', async () => {
+    const res = await SELF.fetch('https://knock.example.com/other-path', { method: 'DELETE' });
     expect(res.status).toBe(404);
   });
 });
