@@ -10,8 +10,16 @@ workers_dev = false
 binding = "IP_ALLOWLIST"
 id = "REPLACE_AFTER_TOFU_APPLY"
 
-# No [triggers] crons block — cron trigger is managed by Tofu (cloudflare_worker_cron_trigger).
-# `wrangler dev --test-scheduled` won't simulate the cron without a [triggers] block; that's acceptable.
+# Custom domain — takes precedence over wildcard *.example.com → tunnel CNAME
+[[routes]]
+pattern = "knock.example.com/*"
+zone_name = "example.com"
+
+# Cron trigger — hourly sync of bypass policy after KV TTL expiry
+# Managed here (not Tofu) to avoid chicken-and-egg: Worker must exist before
+# cloudflare_worker_cron_trigger can reference it, but tofu-apply runs before wrangler deploy.
+[triggers]
+crons = ["0 * * * *"]
 
 # Secrets managed via `wrangler secret put`:
 # CF_API_TOKEN     — Worker runtime token (Zero Trust Edit scope, from 1P: cloudflare.api-token.knock-worker)
