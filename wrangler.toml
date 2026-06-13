@@ -4,8 +4,7 @@ compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = false
 
-# KV ID set after: tofu apply -target cloudflare_workers_kv_namespace.ip_allowlist
-# then: tofu state show cloudflare_workers_kv_namespace.ip_allowlist | grep '\bid\b'
+# KV ID injected by ci/deploy-knock-worker.sh at deploy time (sed replaces placeholder)
 [[kv_namespaces]]
 binding = "IP_ALLOWLIST"
 id = "REPLACE_AFTER_TOFU_APPLY"
