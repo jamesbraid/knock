@@ -1,6 +1,7 @@
 name = "knock"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
 
 # KV ID set after: tofu apply -target cloudflare_workers_kv_namespace.ip_allowlist
 # then: tofu state show cloudflare_workers_kv_namespace.ip_allowlist | grep '\bid\b'
