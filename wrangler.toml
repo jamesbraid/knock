@@ -8,6 +8,9 @@ compatibility_date = "2024-11-01"
 binding = "IP_ALLOWLIST"
 id = "REPLACE_AFTER_TOFU_APPLY"
 
+# No [triggers] crons block — cron trigger is managed by Tofu (cloudflare_worker_cron_trigger).
+# `wrangler dev --test-scheduled` won't simulate the cron without a [triggers] block; that's acceptable.
+
 # Secrets managed via `wrangler secret put`:
 # CF_API_TOKEN     — Worker runtime token (Zero Trust Edit scope, from 1P: cloudflare.api-token.knock-worker)
 # CF_ACCOUNT_ID    — CF account ID
