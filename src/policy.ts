@@ -15,12 +15,16 @@ export async function syncPolicy(env: Env): Promise<void> {
     allKeys.push(...result.keys);
     cursor = result.list_complete ? undefined : result.cursor;
   } while (cursor !== undefined);
-  const ips = allKeys.map((k) => k.name.slice(3)); // strip 'ip:' prefix
+  const ips = allKeys.map((k) => k.name.replace(/^ip:/, ''));
 
   const include =
     ips.length > 0
-      ? ips.map((ip) => ({ ip: { ip: ip.includes('/') ? ip : `${ip}/32` } }))
-      : [{ ip: { ip: '0.0.0.0/32' } }]; // inert placeholder — CF rejects empty include
+      ? ips.map((ip) => {
+          if (ip.includes('/')) return { ip: { ip } };
+          const suffix = ip.includes(':') ? '/128' : '/32';
+          return { ip: { ip: `${ip}${suffix}` } };
+        })
+      : [{ ip: { ip: '0.0.0.0/32' } }]; // inert placeholder — CF rejects empty include (error 12130 "include field should not be empty"). 0.0.0.0/32 is a single-host route that can never match a real client (0.0.0.0 is an invalid source IP per RFC 1122).
 
   const cf = new Cloudflare({ apiToken: env.CF_API_TOKEN });
   await cf.zeroTrust.access.policies.update(env.BYPASS_POLICY_ID, {
