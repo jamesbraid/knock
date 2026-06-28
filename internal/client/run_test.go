@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -41,9 +42,12 @@ func TestFormatResultsAllFailExitsOne(t *testing.T) {
 }
 
 func TestRunUsesInjectedRegisterAndDeleteVerb(t *testing.T) {
+	var mu sync.Mutex
 	var gotMethod string
 	fake := func(_ context.Context, network, _, _, method string) (string, error) {
+		mu.Lock()
 		gotMethod = method
+		mu.Unlock()
 		if network == "tcp4" {
 			return "1.2.3.4", nil
 		}
@@ -52,7 +56,10 @@ func TestRunUsesInjectedRegisterAndDeleteVerb(t *testing.T) {
 	line, code := Run(context.Background(), Options{
 		URL: "https://knock.example.com/register", Unregister: true, Token: "T", Register: fake,
 	})
-	if code != 0 || gotMethod != "DELETE" || !strings.HasPrefix(line, "unregistered:") {
+	mu.Lock()
+	gm := gotMethod
+	mu.Unlock()
+	if code != 0 || gm != "DELETE" || !strings.HasPrefix(line, "unregistered:") {
 		t.Fatalf("line=%q code=%d method=%q", line, code, gotMethod)
 	}
 }
