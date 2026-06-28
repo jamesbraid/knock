@@ -1,7 +1,7 @@
 ---
-# knock CI — build + test + dry-run deploy only. NO deploy credentials here, so
-# anyone can fork and run identical CI. Real deploys happen elsewhere, from a
-# private harness with secret access.
+# knock CI — build + test + secret-scan only. NO deploy or publish credentials
+# here, so anyone can fork and run identical CI. Releases and mirroring happen
+# from a separate private harness.
 
 steps:
   - name: lint
@@ -34,16 +34,3 @@ steps:
       - gitleaks detect --source . --config .gitleaks.toml --redact --verbose --exit-code 1
     when:
       event: [push, pull_request, tag]
-
-  - name: publish-mirror
-    image: curlimages/curl
-    environment:
-      SYNC_TOKEN:
-        from_secret: forgejo_sync_token
-    commands:
-      - curl -sf -X POST -H "Authorization: token $SYNC_TOKEN" "$CI_FORGE_URL/api/v1/repos/$CI_REPO/push_mirrors-sync"
-      - echo "mirror sync triggered"
-    when:
-      - event: push
-        branch: main
-      - event: tag

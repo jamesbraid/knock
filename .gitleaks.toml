@@ -1,0 +1,10 @@
+title = "knock secret scan"
+
+# Generic secret detection only — cloud keys, tokens, private keys, and
+# high-entropy strings. This config is public (it ships with the repo), so it
+# deliberately contains NO project-specific identifiers.
+#
+# The maintainer's private identifier denylist lives outside this repo and is
+# applied by CI's canonical-build homelab gate; it is never published here.
+[extend]
+useDefault = true
