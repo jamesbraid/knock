@@ -4,23 +4,22 @@ compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = false
 
-# KV ID injected by ci/deploy-knock-worker.sh at deploy time (sed replaces placeholder)
+# KV namespace ID — substitute at deploy time via your deployment harness.
+# See README.md "Deployment" section.
 [[kv_namespaces]]
 binding = "IP_ALLOWLIST"
-id = "REPLACE_AFTER_TOFU_APPLY"
+id = "REPLACE_KV_NAMESPACE_ID"
 
-# Custom domain — takes precedence over wildcard *.example.com → tunnel CNAME
-[[routes]]
-pattern = "knock.example.com/*"
-zone_name = "example.com"
-
-# Cron trigger — hourly sync of bypass policy after KV TTL expiry
-# Managed here (not Tofu) to avoid chicken-and-egg: Worker must exist before
-# cloudflare_worker_cron_trigger can reference it, but tofu-apply runs before wrangler deploy.
+# Cron trigger — hourly sync of bypass policy after KV TTL expiry.
 [triggers]
 crons = ["0 * * * *"]
 
-# Secrets managed via `wrangler secret put`:
-# CF_API_TOKEN     — Worker runtime token (Zero Trust Edit scope, from 1P: cloudflare.api-token.knock-worker)
-# CF_ACCOUNT_ID    — CF account ID
-# BYPASS_POLICY_ID — ID of ip_bypass reusable policy (from `tofu output -raw bypass_policy_id`)
+# Routes — comment out / customize for your zone.
+# [[routes]]
+# pattern = "knock.example.com/*"
+# zone_name = "example.com"
+
+# Runtime secrets (set via `wrangler secret put` — do NOT commit values):
+#   CF_API_TOKEN     — CF API token with Zero Trust Edit scope
+#   CF_ACCOUNT_ID    — your CF account ID
+#   BYPASS_POLICY_ID — UUID of the CF Access bypass policy to update
