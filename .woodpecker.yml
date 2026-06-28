@@ -1,0 +1,33 @@
+---
+# knock CI pipeline — runs on Forgejo Woodpecker.
+# Build + test + dry-run deploy only. NO deploy credentials are wired here.
+# Real deploys happen from the monorepo with full secret access (see project
+# README "Source of truth" section).
+#
+# Image is stock Node, NOT the homelab internal-ci image — knock is public
+# source of truth and must not depend on private homelab infrastructure.
+
+steps:
+  - name: lint
+    image: node:20-bookworm-slim
+    commands:
+      - npm ci
+      - npm run lint --if-present
+    when:
+      event: [push, pull_request]
+
+  - name: test
+    image: node:20-bookworm-slim
+    commands:
+      - npm ci
+      - npm test
+    when:
+      event: [push, pull_request]
+
+  - name: build
+    image: node:20-bookworm-slim
+    commands:
+      - npm ci
+      - npx wrangler deploy --dry-run --outdir=dist
+    when:
+      event: [push, pull_request]
