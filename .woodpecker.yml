@@ -28,6 +28,31 @@ steps:
     when:
       event: [push, pull_request]
 
+  - name: go-test
+    image: golang:1.22-bookworm
+    commands:
+      - go vet ./...
+      - go test -race ./...
+    when:
+      event: [push, pull_request]
+
+  - name: go-build
+    image: golang:1.22-bookworm
+    commands:
+      - go build ./cmd/knock
+    when:
+      event: [push, pull_request]
+
+  - name: tofu-validate
+    image: ghcr.io/opentofu/opentofu:1.8
+    commands:
+      - cd deploy
+      - tofu fmt -check
+      - tofu init -backend=false
+      - tofu validate
+    when:
+      event: [push, pull_request]
+
   - name: gitleaks
     image: zricethezav/gitleaks:latest
     commands:
