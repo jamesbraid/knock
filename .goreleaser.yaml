@@ -1,0 +1,22 @@
+version: 2
+project_name: knock
+builds:
+  - id: knock
+    main: ./cmd/knock
+    binary: knock
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+archives:
+  - id: knock
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "knock_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+checksum:
+  name_template: "checksums.txt"
+release:
+  github:
+    owner: jamesbraid
+    name: knock
