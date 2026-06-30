@@ -10,7 +10,7 @@ steps:
       - npm ci
       - npm run lint --if-present
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: test
     image: node:20-bookworm-slim
@@ -18,7 +18,7 @@ steps:
       - npm ci
       - npm test
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: build
     image: node:20-bookworm-slim
@@ -26,7 +26,7 @@ steps:
       - npm ci
       - npx wrangler deploy --dry-run --outdir=dist
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: go-test
     image: golang:1.22-bookworm
@@ -34,14 +34,14 @@ steps:
       - go vet ./...
       - go test -race ./...
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: go-build
     image: golang:1.22-bookworm
     commands:
       - go build ./cmd/knock
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: tofu-validate
     image: ghcr.io/opentofu/opentofu:1.8
@@ -51,11 +51,11 @@ steps:
       - tofu init -backend=false
       - tofu validate
     when:
-      event: [push, pull_request]
+      event: [push, pull_request, manual]
 
   - name: gitleaks
     image: zricethezav/gitleaks:latest
     commands:
       - gitleaks detect --source . --config .gitleaks.toml --redact --verbose --exit-code 1
     when:
-      event: [push, pull_request, tag]
+      event: [push, pull_request, tag, manual]
