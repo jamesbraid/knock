@@ -23,11 +23,19 @@ jobs:
       - run: npm test
 
   gitleaks:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.server_url == 'https://github.com' && 'ubuntu-latest' || 'podman-general' }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: gitleaks/gitleaks-action@v2
-        with: { config: .gitleaks.toml }
+      # The binary, not gitleaks-action: the action demands a GITLEAKS_LICENSE
+      # for organisation-owned repositories, so it fails on the forge, where
+      # this repo belongs to infra. It passes on the mirror only because
+      # jamesbraid is a user account. Same call as the monorepo's publish gate.
+      - name: Scan for secrets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # renovate: datasource=github-releases depName=gitleaks/gitleaks
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks detect --source . --config .gitleaks.toml --redact --no-banner --exit-code 1
