@@ -6,6 +6,7 @@
   "enabledManagers": [
     "gomod",
     "npm",
-    "github-actions"
+    "github-actions",
+    "custom.regex"
   ]
 }
